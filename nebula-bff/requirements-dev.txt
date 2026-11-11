@@ -1,0 +1,6 @@
+-r requirements.txt
+grpcio-tools==1.67.1
+pytest==8.3.3
+pytest-cov==6.0.0
+anyio==4.6.2
+ruff==0.7.2

@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package nebula.reservas.v1;
+
+option go_package = "github.com/nebula-rent/nebula-reservas/gen/reservasv1;reservasv1";
+option java_multiple_files = true;
+option java_package = "cl.nebularent.reservas.v1";
+option csharp_namespace = "NebulaRent.Reservas.V1";
+
+// Servicio de reservas de naves (Java + MySQL)
+service ReservaService {
+  rpc ListarNaves(ListarNavesRequest) returns (ListarNavesResponse);
+  rpc CrearReserva(CrearReservaRequest) returns (Reserva);
+  rpc ObtenerReserva(ObtenerReservaRequest) returns (Reserva);
+  rpc ListarReservas(ListarReservasRequest) returns (ListarReservasResponse);
+  // Lo invoca el servicio de Pagos (.NET) cuando procesa un cobro
+  rpc ActualizarEstadoPago(ActualizarEstadoPagoRequest) returns (Reserva);
+}
+
+message Nave {
+  string id = 1;
+  string nombre = 2;
+  // CARGA, EXPLORACION, LUJO
+  string clase = 3;
+  string licencia_requerida = 4;
+  double tarifa_diaria = 5;
+  int32 capacidad = 6;
+}
+
+message Reserva {
+  string id = 1;
+  string piloto_id = 2;
+  string nave_id = 3;
+  string destino = 4;
+  int32 dias = 5;
+  double monto_total = 6;
+  // CONFIRMADA, CANCELADA
+  string estado = 7;
+  // PENDIENTE, APROBADO, RECHAZADO
+  string estado_pago = 8;
+  string creada_en = 9;
+}
+
+message ListarNavesRequest {}
+
+message ListarNavesResponse {
+  repeated Nave naves = 1;
+}
+
+message CrearReservaRequest {
+  string piloto_id = 1;
+  string nave_id = 2;
+  string destino = 3;
+  int32 dias = 4;
+}
+
+message ObtenerReservaRequest {
+  string id = 1;
+}
+
+message ListarReservasRequest {
+  // opcional: filtra por piloto
+  string piloto_id = 1;
+}
+
+message ListarReservasResponse {
+  repeated Reserva reservas = 1;
+}
+
+message ActualizarEstadoPagoRequest {
+  string reserva_id = 1;
+  string estado_pago = 2;
+  string transaccion_id = 3;
+}

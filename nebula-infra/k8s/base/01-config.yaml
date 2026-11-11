@@ -1,0 +1,37 @@
+# Configuración compartida y secretos.
+# En producción, reemplazar el Secret por SealedSecrets / External Secrets.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nebula-config
+  namespace: nebula-rent
+data:
+  KAFKA_BROKERS: "kafka:9092"
+  PILOTOS_GRPC_ADDR: "pilotos:50051"
+  RESERVAS_GRPC_ADDR: "reservas:9090"
+  CLIMA_MCP_URL: "http://clima-mcp:3000"
+  REDIS_URL: "redis://redis:6379"
+  MONGO_DATABASE: "nebula_pagos"
+  # gRPC Python usa c-ares por defecto; en kind/WSL2 tarda ~8 s en resolver nombres cortos
+  # y supera el timeout de 3 s del BFF. El resolver nativo (getaddrinfo) es inmediato.
+  GRPC_DNS_RESOLVER: "native"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nebula-secrets
+  namespace: nebula-rent
+type: Opaque
+stringData:
+  POSTGRES_USER: pilotos
+  POSTGRES_PASSWORD: pilotos-secret
+  POSTGRES_DB: pilotos
+  DATABASE_URL: "postgres://pilotos:pilotos-secret@postgres:5432/pilotos?sslmode=disable"
+  MYSQL_ROOT_PASSWORD: root-secret
+  MYSQL_DATABASE: reservas
+  MYSQL_USER: reservas
+  MYSQL_PASSWORD: reservas-secret
+  MONGO_INITDB_ROOT_USERNAME: pagos
+  MONGO_INITDB_ROOT_PASSWORD: pagos-secret
+  MONGO_URL: "mongodb://pagos:pagos-secret@mongodb:27017"
+  NASA_API_KEY: DEMO_KEY

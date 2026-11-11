@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package nebula.pilotos.v1;
+
+option go_package = "github.com/nebula-rent/nebula-pilotos/gen/pilotosv1;pilotosv1";
+option java_multiple_files = true;
+option java_package = "cl.nebularent.pilotos.v1";
+option csharp_namespace = "NebulaRent.Pilotos.V1";
+
+// Servicio de pilotos (Go + PostgreSQL)
+service PilotoService {
+  rpc CrearPiloto(CrearPilotoRequest) returns (Piloto);
+  rpc ObtenerPiloto(ObtenerPilotoRequest) returns (Piloto);
+  rpc ListarPilotos(ListarPilotosRequest) returns (ListarPilotosResponse);
+}
+
+message Piloto {
+  string id = 1;
+  string nombre = 2;
+  // CLASE_A (naves de lujo), CLASE_B (exploracion), CLASE_C (carga)
+  string licencia = 3;
+  int32 horas_vuelo = 4;
+  bool activo = 5;
+  string creado_en = 6;
+}
+
+message CrearPilotoRequest {
+  string nombre = 1;
+  string licencia = 2;
+  int32 horas_vuelo = 3;
+}
+
+message ObtenerPilotoRequest {
+  string id = 1;
+}
+
+message ListarPilotosRequest {
+  int32 limite = 1;
+}
+
+message ListarPilotosResponse {
+  repeated Piloto pilotos = 1;
+}

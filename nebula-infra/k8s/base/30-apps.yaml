@@ -1,0 +1,201 @@
+# ===================== BFF (Python / GraphQL / API Gateway) =====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff
+  namespace: nebula-rent
+  labels: { app: bff }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: bff } }
+  template:
+    metadata: { labels: { app: bff } }
+    spec:
+      containers:
+        - name: bff
+          image: ghcr.io/nebula-rent/nebula-bff:latest
+          ports: [{ containerPort: 8000 }]
+          envFrom: [{ configMapRef: { name: nebula-config } }]
+          readinessProbe: { httpGet: { path: /health, port: 8000 }, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /health, port: 8000 }, initialDelaySeconds: 15 }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: bff, namespace: nebula-rent }
+spec:
+  selector: { app: bff }
+  ports: [{ name: http, port: 8000, targetPort: 8000 }]
+---
+# ===================== Pilotos (Go / gRPC / PostgreSQL) =====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pilotos
+  namespace: nebula-rent
+  labels: { app: pilotos }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: pilotos } }
+  template:
+    metadata: { labels: { app: pilotos } }
+    spec:
+      containers:
+        - name: pilotos
+          image: ghcr.io/nebula-rent/nebula-pilotos:latest
+          ports: [{ containerPort: 50051 }]
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: nebula-secrets, key: DATABASE_URL } }
+            - { name: GRPC_PORT, value: "50051" }
+          readinessProbe: { grpc: { port: 50051 }, periodSeconds: 5 }
+          livenessProbe: { grpc: { port: 50051 }, initialDelaySeconds: 10 }
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits: { cpu: 300m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: pilotos, namespace: nebula-rent }
+spec:
+  selector: { app: pilotos }
+  ports: [{ name: grpc, port: 50051, targetPort: 50051 }]
+---
+# ===================== Reservas (Java / gRPC / MySQL / Kafka) =====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reservas
+  namespace: nebula-rent
+  labels: { app: reservas }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: reservas } }
+  template:
+    metadata: { labels: { app: reservas } }
+    spec:
+      containers:
+        - name: reservas
+          image: ghcr.io/nebula-rent/nebula-reservas:latest
+          ports:
+            - { name: grpc, containerPort: 9090 }
+            - { name: http, containerPort: 8080 }
+          envFrom: [{ configMapRef: { name: nebula-config } }]
+          env:
+            - { name: MYSQL_URL, value: "jdbc:mysql://mysql:3306/reservas?useSSL=false&allowPublicKeyRetrieval=true" }
+            - name: MYSQL_USER
+              valueFrom: { secretKeyRef: { name: nebula-secrets, key: MYSQL_USER } }
+            - name: MYSQL_PASSWORD
+              valueFrom: { secretKeyRef: { name: nebula-secrets, key: MYSQL_PASSWORD } }
+          readinessProbe: { httpGet: { path: /actuator/health/readiness, port: 8080 }, initialDelaySeconds: 20, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /actuator/health/liveness, port: 8080 }, initialDelaySeconds: 60 }
+          resources:
+            requests: { cpu: 200m, memory: 384Mi }
+            limits: { cpu: "1", memory: 768Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: reservas, namespace: nebula-rent }
+spec:
+  selector: { app: reservas }
+  ports:
+    - { name: grpc, port: 9090, targetPort: 9090 }
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+# ===================== Pagos (.NET / Kafka / MongoDB) =====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pagos
+  namespace: nebula-rent
+  labels: { app: pagos }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: pagos } }
+  template:
+    metadata: { labels: { app: pagos } }
+    spec:
+      containers:
+        - name: pagos
+          image: ghcr.io/nebula-rent/nebula-pagos:latest
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ configMapRef: { name: nebula-config } }]
+          env:
+            - name: MONGO_URL
+              valueFrom: { secretKeyRef: { name: nebula-secrets, key: MONGO_URL } }
+          readinessProbe: { httpGet: { path: /health, port: 8080 }, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /health, port: 8080 }, initialDelaySeconds: 15 }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 384Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: pagos, namespace: nebula-rent }
+spec:
+  selector: { app: pagos }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+# ===================== Clima MCP Server (TypeScript / REST + MCP / Redis) =====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clima-mcp
+  namespace: nebula-rent
+  labels: { app: clima-mcp }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: clima-mcp } }
+  template:
+    metadata: { labels: { app: clima-mcp } }
+    spec:
+      containers:
+        - name: clima-mcp
+          image: ghcr.io/nebula-rent/nebula-clima-mcp:latest
+          ports: [{ containerPort: 3000 }]
+          envFrom: [{ configMapRef: { name: nebula-config } }]
+          env:
+            - name: NASA_API_KEY
+              valueFrom: { secretKeyRef: { name: nebula-secrets, key: NASA_API_KEY } }
+          readinessProbe: { httpGet: { path: /health, port: 3000 }, periodSeconds: 5 }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 300m, memory: 192Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: clima-mcp, namespace: nebula-rent }
+spec:
+  selector: { app: clima-mcp }
+  ports: [{ name: http, port: 3000, targetPort: 3000 }]
+---
+# ===================== Frontend (React + nginx) =====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: nebula-rent
+  labels: { app: frontend }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: frontend } }
+  template:
+    metadata: { labels: { app: frontend } }
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/nebula-rent/nebula-frontend:latest
+          ports: [{ containerPort: 8080 }]
+          readinessProbe: { httpGet: { path: /, port: 8080 }, periodSeconds: 5 }
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { cpu: 200m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: frontend, namespace: nebula-rent }
+spec:
+  selector: { app: frontend }
+  ports: [{ name: http, port: 80, targetPort: 8080 }]
