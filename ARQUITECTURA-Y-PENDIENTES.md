@@ -93,16 +93,21 @@ Los seis pipelines de aplicación finalizaron correctamente, comprobaron el umbr
 | BFF | 98,98 % de líneas | [pytest-cov](https://github.com/nachitopopwine/nebula-bff/actions/runs/45032063590) |
 | Pilotos | 94,0 % de sentencias | [Go](https://github.com/nachitopopwine/nebula-pilotos/actions/runs/45030557049) |
 | Reservas | 95,0 % de líneas (247 de 260) | [JaCoCo](https://github.com/nachitopopwine/nebula-reservas/actions/runs/45030561141) |
-| Pagos | 96,5 % de líneas | [Coverlet](https://github.com/nachitopopwine/nebula-pagos/actions/runs/45030551253) |
+| Pagos | 96,64 % de líneas | [Coverlet](https://github.com/nachitopopwine/nebula-pagos/actions/runs/45033435982) |
 | Clima MCP | 98,36 % de líneas | [Vitest](https://github.com/nachitopopwine/nebula-clima-mcp/actions/runs/45030530287) |
 | Frontend | 100 % de líneas | [Vitest](https://github.com/nachitopopwine/nebula-frontend/actions/runs/45030540459) |
 
 El pipeline de [infraestructura](https://github.com/nachitopopwine/nebula-infra/actions/runs/45030546395) también validó los manifiestos de Kubernetes.
 
-### Correcciones funcionales detectadas
+### Recuperación de pagos comprobada en Kubernetes
 
-- **Sincronización del estado de pago:** Pagos guarda el cobro como procesado antes de actualizar Reservas mediante gRPC. Si esa llamada falla, el cobro puede quedar aprobado en MongoDB y pendiente en MySQL. Se necesita un mecanismo que permita reintentar la notificación aunque el cobro ya esté procesado.
-- **Reintentos del consumidor Kafka:** ante un error de procesamiento, el consumidor espera y continúa consumiendo, pero no reposiciona explícitamente el mensaje fallido. Se debe asegurar su reprocesamiento antes de confirmar mensajes posteriores de la misma partición, o implementar una estrategia de reintentos.
+Con Reservas detenido, Pagos registró en MongoDB el cobro simulado de 1.200 créditos de la reserva b8060bd2-6f7a-4e45-b0cb-68ee777f8737. Se observó la transacción TX-A1475011ACFC con la notificación pendiente. Se reinició Pagos durante la caída. Al restablecer Reservas, Kafka volvió a entregar la solicitud y Pagos reutilizó el resultado guardado. GraphQL devolvió APROBADO y MongoDB conservó el mismo identificador de transacción.
+
+El consumidor confirma el offset después de procesar el mensaje. La entrega de eventos es al menos una vez. Si el proceso cae después de publicar el evento final y antes de guardar la marca de notificación, ese evento puede repetirse.
+
+### Criterio adoptado para el taller
+
+Usamos gRPC y Kafka como los dos mecanismos de comunicación del sistema. El BFF en Python coordina las peticiones GraphQL y delega la persistencia a los servicios de dominio. Clima consulta la fuente externa, expone REST y MCP, y usa Redis como caché.
 
 ### Cambios sujetos a confirmación
 
