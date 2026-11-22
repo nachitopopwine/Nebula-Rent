@@ -95,7 +95,7 @@ Detalles en [`nebula-infra/README.md`](nebula-infra/README.md).
 Con acceso a los ocho repositorios privados:
 
 ```bash
-git clone --branch staging --recurse-submodules https://github.com/nachitopopwine/Nebula-Rent.git
+git clone --recurse-submodules https://github.com/nachitopopwine/Nebula-Rent.git
 ```
 
-En una copia existente de la rama staging, ejecutar `git submodule update --init --recursive`. Para trabajar en un servicio, crear una rama dentro de su carpeta, publicar sus cambios y después registrar el nuevo commit del submódulo en el repositorio principal.
+En una copia existente de la rama main actualizada, ejecutar `git submodule update --init --recursive`. Para trabajar en un servicio, crear una rama dentro de su carpeta, publicar sus cambios y después registrar el nuevo commit del submódulo en el repositorio principal.

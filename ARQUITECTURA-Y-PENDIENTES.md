@@ -54,7 +54,7 @@ El BFF consume el servicio de clima por REST. El mismo servicio también expone 
 
 Cada servicio y el frontend tienen su propio Dockerfile. La infraestructura incluye manifiestos para desplegar las aplicaciones, PostgreSQL, MySQL, MongoDB, Redis y Kafka en el namespace `nebula-rent`.
 
-También existen pruebas y configuraciones de cobertura mínima del 60 %, junto con workflows de GitHub Actions para pruebas y publicación de imágenes. La configuración existe, pero aún falta validar la ejecución completa y registrar los resultados reales de cobertura y despliegue.
+También existen pruebas y configuraciones de cobertura mínima del 60 %, junto con workflows de GitHub Actions para pruebas y publicación de imágenes. Los resultados de cobertura se detallan más abajo.
 
 ## Arquitectura solicitada por el taller
 
@@ -84,12 +84,20 @@ Según los apuntes de la clase y el esquema de la pizarra, la arquitectura solic
 
 ## Cosas por hacer o cambiar
 
-### Pendientes para acreditar los requisitos
+### Resultados de integración continua del 22 de noviembre de 2026
 
-1. **Ejecutar los pipelines.** Verificar que las pruebas, las validaciones y la construcción de imágenes terminen correctamente en cada repositorio.
-2. **Obtener los reportes de cobertura.** Registrar el porcentaje real de cada servicio y comprobar que cumple el mínimo del 60 %. Revisar también las exclusiones de código aplicadas a la medición.
-3. **Construir las imágenes Docker.** Comprobar que todos los Dockerfiles permiten construir y arrancar sus servicios.
-4. **Desplegar y verificar Kubernetes.** Levantar el clúster, revisar el estado de aplicaciones, bases de datos y Kafka, y demostrar el flujo completo desde el frontend.
+Los seis pipelines de aplicación finalizaron correctamente, comprobaron el umbral del 60 % y publicaron sus imágenes. La tabla recoge la cobertura sobre el código incluido por la configuración de cada servicio.
+
+| Componente | Cobertura | Informe de GitHub Actions |
+|---|---:|---|
+| BFF | 98,98 % de líneas | [pytest-cov](https://github.com/nachitopopwine/nebula-bff/actions/runs/45032063590) |
+| Pilotos | 94,0 % de sentencias | [Go](https://github.com/nachitopopwine/nebula-pilotos/actions/runs/45030557049) |
+| Reservas | 95,0 % de líneas (247 de 260) | [JaCoCo](https://github.com/nachitopopwine/nebula-reservas/actions/runs/45030561141) |
+| Pagos | 96,5 % de líneas | [Coverlet](https://github.com/nachitopopwine/nebula-pagos/actions/runs/45030551253) |
+| Clima MCP | 98,36 % de líneas | [Vitest](https://github.com/nachitopopwine/nebula-clima-mcp/actions/runs/45030530287) |
+| Frontend | 100 % de líneas | [Vitest](https://github.com/nachitopopwine/nebula-frontend/actions/runs/45030540459) |
+
+El pipeline de [infraestructura](https://github.com/nachitopopwine/nebula-infra/actions/runs/45030546395) también validó los manifiestos de Kubernetes.
 
 ### Correcciones funcionales detectadas
 
@@ -104,4 +112,4 @@ Según los apuntes de la clase y el esquema de la pizarra, la arquitectura solic
 
 ## Estado actual
 
-La estructura del código contempla BFF con GraphQL, servicios en lenguajes distintos, bases de datos separadas, comunicación por gRPC y Kafka, Dockerfiles y manifiestos Kubernetes. Queda pendiente comprobar con ejecuciones y reportes el funcionamiento integrado, los pipelines y la cobertura mínima exigida.
+La estructura del código contempla BFF con GraphQL, servicios en lenguajes distintos, bases de datos separadas, comunicación por gRPC y Kafka, Dockerfiles y manifiestos Kubernetes. El 22 de noviembre de 2026 se comprobó el flujo en el clúster local kind nebula-taller, con acceso al servicio frontend por port-forward. Desde el navegador se creó la reserva 75e9caa5-fa07-46f7-9a5a-9f2fa0ed10de a la Luna por 3.600 créditos y se solicitó el pago simulado. Tras recargar la interfaz, el estado seguía en APROBADO. Una consulta GraphQL por el mismo ID confirmó el resultado.
