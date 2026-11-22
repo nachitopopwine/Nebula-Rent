@@ -1,0 +1,24 @@
+[submodule "nebula-bff"]
+	path = nebula-bff
+	url = https://github.com/nachitopopwine/nebula-bff.git
+[submodule "nebula-clima-mcp"]
+	path = nebula-clima-mcp
+	url = https://github.com/nachitopopwine/nebula-clima-mcp.git
+[submodule "nebula-contracts"]
+	path = nebula-contracts
+	url = https://github.com/nachitopopwine/nebula-contracts.git
+[submodule "nebula-frontend"]
+	path = nebula-frontend
+	url = https://github.com/nachitopopwine/nebula-frontend.git
+[submodule "nebula-infra"]
+	path = nebula-infra
+	url = https://github.com/nachitopopwine/nebula-infra.git
+[submodule "nebula-pagos"]
+	path = nebula-pagos
+	url = https://github.com/nachitopopwine/nebula-pagos.git
+[submodule "nebula-pilotos"]
+	path = nebula-pilotos
+	url = https://github.com/nachitopopwine/nebula-pilotos.git
+[submodule "nebula-reservas"]
+	path = nebula-reservas
+	url = https://github.com/nachitopopwine/nebula-reservas.git

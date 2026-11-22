@@ -49,7 +49,7 @@ flowchart LR
 | [`nebula-infra`](nebula-infra) | Orquestación | YAML | — | Kubernetes |
 | [`nebula-contracts`](nebula-contracts) | Contratos `.proto` y eventos | Protobuf | — | — |
 
-### Requisitos cubiertos
+### Configuración del taller
 - **BFF con endpoint GraphQL**: `nebula-bff` expone `/graphql` (queries y mutations).
 - **Al menos dos formas de comunicación entre microservicios**: **gRPC** (síncrona) y **Kafka**
   (asíncrona), además de REST hacia el MCP Server.
@@ -70,7 +70,7 @@ flowchart LR
   | nebula-frontend | vitest v8 `thresholds` | 60 % |
 
 - **Cada servicio en su propio repositorio**: cada carpeta es un repo git independiente.
-  `publicar-repos.sh` los crea y sube a GitHub.
+  El repositorio principal fija los commits de los ocho componentes mediante submódulos.
 
 ## Flujo de una reserva con pago
 
@@ -90,7 +90,12 @@ cd nebula-infra && ./deploy-local.sh     # kind + build de las 6 imágenes + kub
 ```
 Detalles en [`nebula-infra/README.md`](nebula-infra/README.md).
 
-## Publicar los repos en GitHub
+## Clonar el proyecto completo
+
+Con acceso a los ocho repositorios privados:
+
 ```bash
-./publicar-repos.sh <tu-usuario-u-organizacion>    # requiere gh autenticado
+git clone --branch staging --recurse-submodules https://github.com/nachitopopwine/Nebula-Rent.git
 ```
+
+En una copia existente de la rama staging, ejecutar `git submodule update --init --recursive`. Para trabajar en un servicio, crear una rama dentro de su carpeta, publicar sus cambios y después registrar el nuevo commit del submódulo en el repositorio principal.

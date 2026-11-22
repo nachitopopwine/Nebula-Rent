@@ -1,7 +1,0 @@
-__pycache__/
-.venv/
-.pytest_cache/
-.coverage
-coverage.xml
-app/gen/*
-!app/gen/__init__.py
